@@ -12,8 +12,6 @@ apt update && apt -y install git && git clone https://github.com/iKoolCore/PVE_S
 cd PVE_Status_Tools
 ./PVE_Status_Tools.sh
 ```
-## 最后效果
-![效果图](./PVE_Status_Tools.png)
 
 > 建议优化操作：
   - 删除企业源：`rm /etc/apt/sources.list.d/pve-enterprise.list`
