@@ -1,9 +1,8 @@
 <center><h1> PVE_Status_Tools </center>
 
 ## 使用方式
-> 注意（非常重要） :
-- 需要使用root身份执行下面代码；
-- 需要在未修改过的PVE系统之下运行，如果你修改过 `Nodes.pm` 和 `pvemanagerlib.js`,需要恢复原文件才可使用以下代码；
+> 注意:`需要使用root身份执行下面代码`
+
 
 **在终端中按行分别执行以下代码：**
 ```
@@ -13,4 +12,7 @@ cd PVE_Status_Tools
 ./PVE_Status_Tools.sh
 ```
 
-
+**或** 直接执行下面一行代码：
+```
+wget -qO-  https://raw.githubusercontent.com/iKoolCore/PVE_Status_Tools/main/PVE_Status_Tools.sh | bash
+```
