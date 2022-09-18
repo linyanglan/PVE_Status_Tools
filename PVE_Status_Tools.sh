@@ -872,7 +872,8 @@ sed -i '/'"'"'diskread'"'"', '"'"'diskwrite'"'"'/{n;s/		    store: rrdstore/		  
 
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
 
-echo -e "添加 PVE 硬件概要信息完成，正在重启 pveproxy 服务 ......"
+echo -e "添加 PVE 硬件概要信息完成，正在执行：重启 pveproxy 服务 ......"
 systemctl restart pveproxy
-
+echo -e "正在执行：删除企业源 ......"
+rm /etc/apt/sources.list.d/pve-enterprise.list
 echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面"
