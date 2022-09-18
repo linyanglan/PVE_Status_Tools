@@ -1,6 +1,5 @@
 <center><h1> PVE_Status_Tools </center>
 
-## 使用方式
 > 注意:需要使用`root`身份执行下面代码
 
 
