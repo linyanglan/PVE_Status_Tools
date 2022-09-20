@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 
+## Build 20220920-001
+
 #"/usr/share/perl5/PVE/API2/Nodes.pm"
 #"/usr/share/pve-manager/js/pvemanagerlib.js"
 #"/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js"
 
+# 检查并安装工具包
+if [ -z $(which sensors) ]; then
+    echo -e "正在安装 lm-sensors ......"
+    apt-get install -y lm-sensors > /dev/null 2>&1
+    chmod +s /usr/sbin/smartctl
+fi
+
+if [ -z $(which iostat) ]; then
+    echo -e "正在安装 sysstat ......"
+    apt-get install -y sysstat > /dev/null 2>&1
+fi
+
+# 识别 CPU 平台
 cpu_platform="$(lscpu | grep 'Model name' | grep -E 'Intel|AMD')"
 case $cpu_platform in
     *Intel*)
@@ -19,6 +34,7 @@ case $cpu_platform in
           ;;
 esac
 
+# CPU 主频及温度等信息 API
 cpu_info_api='		
 	my $cpufreqs = `lscpu | grep MHz`;
 	my $corefreqs = `cat /proc/cpuinfo | grep -i  "cpu MHz"`;
@@ -27,6 +43,7 @@ cpu_info_api='
     $res->{cpu_temperatures} = `sensors`;
 		'
 
+# CPU 主频信息 Web UI
 cpu_freq_display=',
 	{
 	    itemId: '"'"'cpu-frequency'"'"',
@@ -62,6 +79,7 @@ cpu_freq_display=',
 	    }
 	},'
 
+# CPU 温度信息 Web UI
 if [ $CPU = "Intel" ]; then
     cpu_temp_display='
 	{
@@ -338,6 +356,7 @@ elif [ $CPU = "AMD" ]; then
 	}'
 fi
 
+# NVME 硬盘信息 API 及 Web UI
 nvme_height="0"
 if [ $(ls /dev/nvme? 2> /dev/null | wc -l) -gt 0 ]; then
     i="1"
@@ -585,6 +604,7 @@ if [ $(ls /dev/nvme? 2> /dev/null | wc -l) -gt 0 ]; then
     done
 fi
 
+# 其他存储设备信息 API 及 Web UI
 hdd_height="0"
 if [ $(ls /dev/sd? 2> /dev/null | wc -l) -gt 0 ]; then
     i="1"
@@ -815,13 +835,16 @@ if [ $(ls /dev/sd? 2> /dev/null | wc -l) -gt 0 ]; then
     done
 fi
 
-
+# API
 INFO_API="$cpu_info_api$nvme_info_api$hdd_info_api"
+# Web UI
 INFO_DISPLAY="$cpu_freq_display$cpu_temp_display$nvme_info_display$hdd_info_display"
 
+# 缓存代码
 echo -e "$INFO_API" > /tmp/1.txt
 echo -e "	    value: '',\n	}$INFO_DISPLAY" > /tmp/2.txt
 
+# CPU 主频及温度 UI 高度
 cpu_degree="$(sensors | grep $cpu_keyword | wc -l)"
 core_degree="$(sensors | grep Core | wc -l)"
 process_degree="$(cat /proc/cpuinfo | grep -i "cpu MHz" | wc -l)"
@@ -834,7 +857,7 @@ cpu_temp_height="$[cpu_temp_degree*17+7]"
 cpu_freq_degree="$[cpu_degree + (process_degree+4-1)/4]"
 cpu_freq_height="$[cpu_freq_degree*17+7]"
 
-# 计算图形框高度
+# Web UI 总高度
 #height1="$[400 + (cpu_temp_height + cpu_freq_height + nvme_height + hdd_height)]"
 #height1="400"
 height2="$[300 + cpu_temp_height + cpu_freq_height + nvme_height + hdd_height + 25]"
@@ -842,38 +865,32 @@ if [ $height2 -le 325 ]; then
     height2="300"
 fi
 
-# 检查并安装工具包
-if [ -z $(which sensors) ]; then
-    echo -e "正在安装 lm-sensors ......"
-    apt-get install -y lm-sensors > /dev/null 2>&1
-    chmod +s /usr/sbin/smartctl
-fi
-
-if [ -z $(which iostat) ]; then
-    echo -e "正在安装 sysstat ......"
-    apt-get install -y sysstat > /dev/null 2>&1
-fi
-
 # 重装 pve-manager
 echo -e "正在恢复默认 pve-manager ......"
 apt-get update > /dev/null 2>&1
 apt-get reinstall pve-manager > /dev/null 2>&1
 
-# 修改文件
+# 将 API 及 Web UI 文件修改至原文件
 sed -i '/PVE::pvecfg::version_text();/,/my $dinfo = df/!b;//!d;/my $dinfo = df/e cat /tmp/1.txt' /usr/share/perl5/PVE/API2/Nodes.pm
 sed -i '/pveversion/,/],/!b;//!d;/],/e cat /tmp/2.txt' /usr/share/pve-manager/js/pvemanagerlib.js
 
 #sed -i '/let win = Ext.create('"'"'Ext.window.Window'"'"', {/,/height/ s/height: [0-9]\+/height: '$height1'/' /usr/share/pve-manager/js/pvemanagerlib.js
 
+# 修改信息框 Web UI 高度
 sed -i '/widget.pveNodeStatus/,/},/ { s/height: [0-9]\+/height: '$height2'/; s/	    },/		textAlign: '"'"'right'"'"',\n&/}' /usr/share/pve-manager/js/pvemanagerlib.js
 
+# 完善汉化信息
 sed -i '/'"'"'netin'"'"', '"'"'netout'"'"'/{n;s/		    store: rrdstore/		    fieldTitles: [gettext('"'"'下行'"'"'), gettext('"'"'上行'"'"')],	\n&/g}' /usr/share/pve-manager/js/pvemanagerlib.js
 sed -i '/'"'"'diskread'"'"', '"'"'diskwrite'"'"'/{n;s/		    store: rrdstore/		    fieldTitles: [gettext('"'"'读'"'"'), gettext('"'"'写'"'"')],	\n&/g}' /usr/share/pve-manager/js/pvemanagerlib.js
 
+# 去除订阅提示
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
 
-echo -e "添加 PVE 硬件概要信息完成，正在执行：重启 pveproxy 服务 ......"
+echo -e "添加 PVE 硬件概要信息完成，正在重启 pveproxy 服务 ......"
 systemctl restart pveproxy
+
 echo -e "正在执行：删除企业源 ......"
 rm /etc/apt/sources.list.d/pve-enterprise.list
-echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面"
+
+echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面。\n如需使用暗黑主题，请继续使用以下命令(国内用户需要梯子)：\nbash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh ) install"
+
