@@ -84,4 +84,4 @@ update-initramfs -u -k all
 
 #### 六、相关资源：
 
- [PVE暗黑主题 ｜ PVEDiscordDark ](https://github.com/Weilbyte/PVEDiscordDark) thanks to [Weilbyte](https://github.com/Weilbyte) <small>  **(click to visit) **</small>
+ [PVE暗黑主题 ｜ PVEDiscordDark ](https://github.com/Weilbyte/PVEDiscordDark) thanks to [Weilbyte](https://github.com/Weilbyte)  **<small>(click to visit) </small>**
