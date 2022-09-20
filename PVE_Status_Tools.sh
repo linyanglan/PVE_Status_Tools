@@ -892,5 +892,5 @@ systemctl restart pveproxy
 echo -e "正在执行：删除企业源 ......"
 rm /etc/apt/sources.list.d/pve-enterprise.list
 
-echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面。\n如需使用暗黑主题，请继续使用以下命令(国内用户需要梯子)：\nbash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh ) install"
+echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面。"
 
