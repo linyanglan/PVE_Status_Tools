@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20220920-001
+## Build 20220920-002
 
 #"/usr/share/perl5/PVE/API2/Nodes.pm"
 #"/usr/share/pve-manager/js/pvemanagerlib.js"
@@ -841,8 +841,10 @@ INFO_API="$cpu_info_api$nvme_info_api$hdd_info_api"
 INFO_DISPLAY="$cpu_freq_display$cpu_temp_display$nvme_info_display$hdd_info_display"
 
 # 缓存代码
-echo -e "$INFO_API" > /tmp/1.txt
-echo -e "	    value: '',\n	}$INFO_DISPLAY" > /tmp/2.txt
+echo -e "\n" > /tmp/0.txt
+echo -e "	    value: '',\n	}," > /tmp/1.txt
+echo -e "$INFO_API" > /tmp/2.txt
+echo -e "	    value: '',\n	}$INFO_DISPLAY" > /tmp/3.txt
 
 # CPU 主频及温度 UI 高度
 cpu_degree="$(sensors | grep $cpu_keyword | wc -l)"
@@ -866,13 +868,15 @@ if [ $height2 -le 325 ]; then
 fi
 
 # 重装 pve-manager
-echo -e "正在恢复默认 pve-manager ......"
-apt-get update > /dev/null 2>&1
-apt-get reinstall pve-manager > /dev/null 2>&1
+# echo -e "正在恢复默认 pve-manager ......"
+# apt-get update > /dev/null 2>&1
+# apt-get reinstall pve-manager > /dev/null 2>&1
+# sed -i '/PVE::pvecfg::version_text();/,/my $dinfo = df/!b;//!d;s/my $dinfo = df/\n	&/' /usr/share/perl5/PVE/API2/Nodes.pm
+# sed -i '/pveversion/,/^\s\+],/!b;//!d;/^\s\+],/e cat /tmp/1.txt' /usr/share/pve-manager/js/pvemanagerlib.js
 
 # 将 API 及 Web UI 文件修改至原文件
-sed -i '/PVE::pvecfg::version_text();/,/my $dinfo = df/!b;//!d;/my $dinfo = df/e cat /tmp/1.txt' /usr/share/perl5/PVE/API2/Nodes.pm
-sed -i '/pveversion/,/],/!b;//!d;/],/e cat /tmp/2.txt' /usr/share/pve-manager/js/pvemanagerlib.js
+sed -i '/PVE::pvecfg::version_text();/,/my $dinfo = df/!b;//!d;/my $dinfo = df/e cat /tmp/2.txt' /usr/share/perl5/PVE/API2/Nodes.pm
+sed -i '/pveversion/,/^\s\+],/!b;//!d;/^\s\+],/e cat /tmp/3.txt' /usr/share/pve-manager/js/pvemanagerlib.js
 
 #sed -i '/let win = Ext.create('"'"'Ext.window.Window'"'"', {/,/height/ s/height: [0-9]\+/height: '$height1'/' /usr/share/pve-manager/js/pvemanagerlib.js
 
@@ -889,8 +893,5 @@ sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/
 echo -e "添加 PVE 硬件概要信息完成，正在重启 pveproxy 服务 ......"
 systemctl restart pveproxy
 
-echo -e "正在执行：删除企业源 ......"
-rm /etc/apt/sources.list.d/pve-enterprise.list
-
-echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面。"
+echo -e "pveproxy 服务重启完成，请使用 Shift + F5 手动刷新 PVE Web 页面。\n如需使用暗黑主题，请继续使用以下命令(国内用户需要梯子)：\nbash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh ) install"
 
