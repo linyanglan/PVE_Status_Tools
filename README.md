@@ -80,3 +80,7 @@ update-initramfs -u -k all
 2022.9.20.001 更新日志：
 > 1、调整依赖工具包的安装时机，解决报错；<br>
 > 2、增加一些代码注释。
+
+
+#### 六、鸣谢：
+[Weilbyte](https://github.com/Weilbyte)       ｜  [PVE暗黑主题](https://github.com/Weilbyte/PVEDiscordDark)
